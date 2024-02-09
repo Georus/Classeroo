@@ -8,9 +8,11 @@ import sqlite3
 con = sqlite3.connect('extracker.db')
 cur = con.cursor()
 
+
 def init_db():
     with open('schema.sql') as f:
         cur.executescript(f.read())
+
 
 def create_exp():
     cur.execute('''
@@ -20,16 +22,20 @@ def create_exp():
         ''')
     con.commit()
 
+
 def find_many():
     return cur.execute('''
         SELECT *
         FROM expenses
         ''').fetchone()
+
+
 # init_db()
 # create_exp()
 # res = find_many()
 # print(res[2])
 con.close()
+
 
 class User:
     def __init__(self):
@@ -57,23 +63,25 @@ class Expense:
     category: str
     pay_date: date
     description: str
-    spend_date: date = date.today()
+    spend_date: date
     length: int = 1
+
 
 @dataclass
 class Item:
-        name: str
-        total_amount: float
-        length: int
-        amount_left: float
-        amount_month: float
+    name: str
+    total_amount: float
+    length: int
+    amount_left: float
+    amount_month: float
+
 
 @dataclass
 class Month:
-        name: str
-        items: List[Item] = field(default_factory=list)
-        expenses: List[Expense] = field(default_factory=list)
-        debt: float = 0
+    name: str
+    items: List[Item] = field(default_factory=list)
+    expenses: List[Expense] = field(default_factory=list)
+    debt: float = 0
 
 
 class Card:
@@ -87,7 +95,7 @@ class Card:
 
 
 class CreditCard:
-    def __init__(self, cut:int, expiration: int, balance: float, rate: float):
+    def __init__(self, cut: int, expiration: int, balance: float, rate: float):
         self.cut = cut
         self.expiration = expiration
         self.balance = balance
@@ -107,23 +115,24 @@ class CreditCard:
             Month('October'),
         ]
 
-    def spend(self, amount: float, name: str, category:str, description='', sd=date.today()):
+    def spend(self, amount: float, name: str, category: str, description='', sd=date.today()):
         self.balance -= amount
 
         if sd.day > self.cut:
             if sd.month == 12:
-                pay_date = sd.replace(year=sd.year + 1, month=1, day=self.cut) + self.paytime
+                pay_date = sd.replace(
+                    year=sd.year + 1, month=1, day=self.cut) + self.paytime
             else:
-                pay_date = sd.replace(month=sd.month + 1, day=self.cut) + self.paytime
+                pay_date = sd.replace(month=sd.month + 1,
+                                      day=self.cut) + self.paytime
         else:
             pay_date = sd.replace(day=self.cut) + self.paytime
 
-        self.expenses.append(Expense(amount, name, category, pay_date, description))
-
+        self.expenses.append(
+            Expense(amount, name, category, pay_date, description, sd))
 
     def deposit(self, amount):
         self.balance += amount
-
 
     def history_ex(self, months):
         res = filter(lambda exp: exp.pay_date.month in months, self.expenses)
@@ -179,10 +188,10 @@ class Savings(Account):
 if __name__ == '__main__':
     likeu = CreditCard(17, 28, 32000, 33)
     likeu.spend(700, 'sushi', 'food')
-    likeu.spend(200, 'cacahuates', 'food', sd=date(2024,2,6))
-    likeu.spend(1200, 'dogfood', 'pet', sd=date(2024,2,27))
-    likeu.spend(600, 'roses', 'gift', sd=date(2024,2,20))
-    likeu.spend(200, 'christmas gifft', 'life', sd=date(2024,12,20))
+    likeu.spend(200, 'cacahuates', 'food', sd=date(2024, 2, 6))
+    likeu.spend(1200, 'dogfood', 'pet', sd=date(2024, 2, 27))
+    likeu.spend(600, 'roses', 'gift', sd=date(2024, 2, 20))
+    likeu.spend(200, 'christmas gifft', 'life', sd=date(2024, 12, 20))
     likeu.history_ex(months=[3])
     # ba = BankAccount('Bancomer')
     # ba.deposit(1000)
